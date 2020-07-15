@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import redis.clients.jedis.commands.BinaryRedisPipeline;
+import redis.clients.jedis.commands.ProtocolCommand;
 import redis.clients.jedis.commands.RedisPipeline;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.SetParams;
@@ -1300,6 +1301,54 @@ public abstract class PipelineBase extends Queable implements BinaryRedisPipelin
   }
 
   @Override
+  public Response<Tuple> zpopmax(final String key) {
+    getClient(key).zpopmax(key);
+    return getResponse(BuilderFactory.TUPLE);
+  }
+
+  @Override
+  public Response<Tuple> zpopmax(final byte[] key) {
+    getClient(key).zpopmax(key);
+    return getResponse(BuilderFactory.TUPLE);
+  }
+
+  @Override
+  public Response<Set<Tuple>> zpopmax(final String key, final int count) {
+    getClient(key).zpopmax(key, count);
+    return getResponse(BuilderFactory.TUPLE_ZSET);
+  }
+
+  @Override
+  public Response<Set<Tuple>> zpopmax(final byte[] key, final int count) {
+    getClient(key).zpopmax(key, count);
+    return getResponse(BuilderFactory.TUPLE_ZSET);
+  }
+
+  @Override
+  public Response<Tuple> zpopmin(final String key) {
+    getClient(key).zpopmin(key);
+    return getResponse(BuilderFactory.TUPLE);
+  }
+
+  @Override
+  public Response<Tuple> zpopmin(final byte[] key) {
+    getClient(key).zpopmin(key);
+    return getResponse(BuilderFactory.TUPLE);
+  }
+
+  @Override
+  public Response<Set<Tuple>> zpopmin(final byte[] key, final int count) {
+    getClient(key).zpopmin(key, count);
+    return getResponse(BuilderFactory.TUPLE_ZSET);
+  }
+
+  @Override
+  public Response<Set<Tuple>> zpopmin(final String key, final int count) {
+    getClient(key).zpopmin(key, count);
+    return getResponse(BuilderFactory.TUPLE_ZSET);
+  }
+
+  @Override
   public Response<Long> zlexcount(final byte[] key, final byte[] min, final byte[] max) {
     getClient(key).zlexcount(key, min, max);
     return getResponse(BuilderFactory.LONG);
@@ -1458,6 +1507,18 @@ public abstract class PipelineBase extends Queable implements BinaryRedisPipelin
   @Override
   public Response<Long> objectIdletime(final byte[] key) {
     getClient(key).objectIdletime(key);
+    return getResponse(BuilderFactory.LONG);
+  }
+
+  @Override
+  public Response<Long> objectFreq(byte[] key) {
+    getClient(key).objectFreq(key);
+    return getResponse(BuilderFactory.LONG);
+  }
+
+  @Override
+  public Response<Long> objectFreq(String key) {
+    getClient(key).objectFreq(key);
     return getResponse(BuilderFactory.LONG);
   }
 
@@ -1778,6 +1839,18 @@ public abstract class PipelineBase extends Queable implements BinaryRedisPipelin
   }
 
   @Override
+  public Response<List<Long>> bitfieldReadonly(byte[] key, final byte[]... arguments) {
+    getClient(key).bitfieldReadonly(key, arguments);
+    return getResponse(BuilderFactory.LONG_LIST);
+  }
+
+  @Override
+  public Response<List<Long>> bitfieldReadonly(String key, final String... arguments) {
+    getClient(key).bitfieldReadonly(key, arguments);
+    return getResponse(BuilderFactory.LONG_LIST);
+  }
+
+  @Override
   public Response<Long> hstrlen(final String key, final String field) {
     getClient(key).hstrlen(key, field);
     return getResponse(BuilderFactory.LONG);
@@ -1900,15 +1973,15 @@ public abstract class PipelineBase extends Queable implements BinaryRedisPipelin
   }
   
   @Override
-  public Response<String> xgroupDelConsumer( String key, String groupname, String consumername){
+  public Response<Long> xgroupDelConsumer( String key, String groupname, String consumername){
     getClient(key).xgroupDelConsumer(key, groupname, consumername);
-    return getResponse(BuilderFactory.STRING);
+    return getResponse(BuilderFactory.LONG);
   }
   
   @Override
-  public Response<String> xgroupDelConsumer(byte[] key, byte[] groupname, byte[] consumername){
+  public Response<Long> xgroupDelConsumer(byte[] key, byte[] groupname, byte[] consumername){
     getClient(key).xgroupDelConsumer(key, groupname, consumername);
-    return getResponse(BuilderFactory.STRING);    
+    return getResponse(BuilderFactory.LONG);
   }
 
   @Override
@@ -1960,5 +2033,15 @@ public abstract class PipelineBase extends Queable implements BinaryRedisPipelin
       long newIdleTime, int retries, boolean force, byte[]... ids){
     getClient(key).xclaim(key, group, consumername, minIdleTime, newIdleTime, retries, force, ids);
     return getResponse(BuilderFactory.BYTE_ARRAY_LIST);            
+  }
+
+  public Response<Object> sendCommand(final String sampleKey, final ProtocolCommand cmd, final String... args) {
+    getClient(sampleKey).sendCommand(cmd, args);
+    return getResponse(BuilderFactory.OBJECT);
+  }
+
+  public Response<Object> sendCommand(final byte[] sampleKey, final ProtocolCommand cmd, final byte[]... args) {
+    getClient(sampleKey).sendCommand(cmd, args);
+    return getResponse(BuilderFactory.OBJECT);
   }
 }

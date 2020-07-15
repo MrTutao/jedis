@@ -1,12 +1,12 @@
 package redis.clients.jedis;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 import redis.clients.jedis.commands.BinaryJedisCommands;
+import redis.clients.jedis.commands.ProtocolCommand;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.SetParams;
@@ -17,6 +17,9 @@ import redis.clients.jedis.util.Sharded;
 
 public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implements
     BinaryJedisCommands {
+
+  private final byte[][] dummyArray = new byte[0][];
+
   public BinaryShardedJedis(List<JedisShardInfo> shards) {
     super(shards);
   }
@@ -295,7 +298,7 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
   }
 
   @Override
-  public Collection<byte[]> hvals(final byte[] key) {
+  public List<byte[]> hvals(final byte[] key) {
     Jedis j = getShard(key);
     return j.hvals(key);
   }
@@ -535,6 +538,30 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
   }
 
   @Override
+  public Tuple zpopmax(final byte[] key) {
+    Jedis j = getShard(key);
+    return j.zpopmax(key);
+  }
+
+  @Override
+  public Set<Tuple> zpopmax(final byte[] key, final int count) {
+    Jedis j = getShard(key);
+    return j.zpopmax(key, count);
+  }
+
+  @Override
+  public Tuple zpopmin(final byte[] key) {
+    Jedis j = getShard(key);
+    return j.zpopmin(key);
+  }
+
+  @Override
+  public Set<Tuple> zpopmin(final byte[] key, final int count) {
+    Jedis j = getShard(key);
+    return j.zpopmin(key, count);
+  }
+
+  @Override
   public List<byte[]> sort(final byte[] key) {
     Jedis j = getShard(key);
     return j.sort(key);
@@ -736,6 +763,16 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
   }
 
   public Long objectIdletime(final byte[] key) {
+    Jedis j = getShard(key);
+    return j.objectIdletime(key);
+  }
+
+  public List<String> objectHelp() {
+    Jedis j = getShard("null");
+    return j.objectHelp();
+  }
+
+  public Long objectFreq(final byte[] key) {
     Jedis j = getShard(key);
     return j.objectIdletime(key);
   }
@@ -951,6 +988,12 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
  }
 
   @Override
+  public List<Long> bitfieldReadonly(byte[] key, final byte[]... arguments) {
+    Jedis j = getShard(key);
+    return j.bitfieldReadonly(key, arguments);
+  }
+
+  @Override
   public Long hstrlen(final byte[] key, final byte[] field) {
     Jedis j = getShard(key);
     return j.hstrlen(key, field);
@@ -1005,7 +1048,7 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
   }
 
   @Override
-  public String xgroupDelConsumer(byte[] key, byte[] consumer, byte[] consumerName) {
+  public Long xgroupDelConsumer(byte[] key, byte[] consumer, byte[] consumerName) {
     Jedis j = getShard(key);
     return j.xgroupDelConsumer(key, consumer, consumerName);
   }
@@ -1033,5 +1076,34 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo> implement
       int retries, boolean force, byte[][] ids) {
     Jedis j = getShard(key);
     return j.xclaim(key, groupname, consumername, minIdleTime, newIdleTime, retries, force, ids);
-  }  
+  }
+
+  @Override
+  public StreamInfo xinfoStream(byte[] key) {
+    Jedis j = getShard(key);
+    return j.xinfoStream(key);
+  }
+
+  @Override
+  public List<StreamGroupInfo> xinfoGroup(byte[] key) {
+    Jedis j = getShard(key);
+    return j.xinfoGroup(key);
+  }
+
+  @Override
+  public List<StreamConsumersInfo> xinfoConsumers(byte[] key, byte[] group) {
+    Jedis j = getShard(key);
+    return j.xinfoConsumers(key, group);
+  }
+
+  public Object sendCommand(ProtocolCommand cmd, byte[]... args) {
+    // default since no sample key provided in JedisCommands interface
+    byte[] sampleKey = args.length > 0 ? args[0] : cmd.getRaw();
+    Jedis j = getShard(sampleKey);
+    return j.sendCommand(cmd, args);
+  }
+
+  public Object sendCommand(ProtocolCommand cmd) {
+    return sendCommand(cmd, dummyArray);
+  }
 }
